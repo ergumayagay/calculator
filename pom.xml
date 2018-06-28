@@ -53,7 +53,7 @@
 						<goals>
 							<goal>generate</goal>
 						</goals>
-				</execution>
+					</execution>
 				</executions>
 				<configuration>
 					<schemaLanguage>WSDL</schemaLanguage>
