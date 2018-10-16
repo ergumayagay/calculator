@@ -1,6 +1,7 @@
 package com.emil.calculator;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -9,6 +10,10 @@ import java.awt.GridBagLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -105,19 +110,13 @@ public class Frame extends JFrame {
 		btnDot.addActionListener(new BtnAction());
 		JButton btnEq  = new JButton("=");
 		btnEq.setFont(btnFont);
-		btnEq.addActionListener(e -> {
-			
-			
-			
-			
-			
-			
-		});
+		btnEq.addActionListener(new EqualsAction());
 
 		input = new JTextField();
 		input.setPreferredSize(new Dimension(300, 50));
 		input.setFont(new Font("Arial", 1, 20));
-		
+		input.setEditable(false);
+
 		GridBagConstraints gridCon = new GridBagConstraints();
 		
 		gridCon.fill = GridBagConstraints.BOTH;
@@ -224,11 +223,51 @@ public class Frame extends JFrame {
 	private class EqualsAction implements ActionListener{
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			String inputString = input.getText();
-			AddResponse sum = client.add(1, 2);
-			input.setText(Integer.toString(sum.getAddResult()));
+			String inputText = input.getText();
+			input.setText(compute(inputText));
+		}
+		
+		private String compute(String inputText) {
+			Queue<String> operator = new LinkedList<>();
+			Queue<Integer> operands = new LinkedList<>();
+			
+			String digit = "";
+			for (int x = 0; x < inputText.length(); x++) {
+				try{
+					Integer.parseInt(String.valueOf(inputText.charAt(x)));
+					digit += String.valueOf(inputText.charAt(x));
+				} catch(NumberFormatException nfe) {
+					operator.add(String.valueOf(inputText.charAt(x)));
+					operands.add(Integer.parseInt(digit));
+					digit = "";
+				}
+			}
+			operands.add(Integer.parseInt(digit));
+			
+			int digit1 =  (operands.peek() != null) ? operands.poll() : 0;;
+			int digit2 = 0;
+			while (!operator.isEmpty()) {
+				digit2 = (operands.peek() != null) ? operands.poll() : 0;
+				
+				switch (operator.poll()) {
+				case "+":
+					digit1 = client.add(digit1, digit2).getAddResult();
+					break;
+				case "-":
+					digit1 = client.subtract(digit1, digit2).getSubtractResult();
+					break;
+				case "*":
+					digit1 = client.multiply(digit1, digit2).getMultiplyResult();
+					break;
+				case "/":
+					if (digit2 != 0) digit1 = client.divide(digit1, digit2).getDivideResult();
+					else System.out.println("Cannot divide by 0");
+					break;
+				}
+			}
+			
+			int output = digit1;
+			return Integer.toString(output);
 		}
 	}
-	
-
 }
